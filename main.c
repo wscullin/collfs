@@ -38,12 +38,16 @@ int run_tests(const char *soname, const char *path)
   return 0;
 }
 
-void in_your_libc()
-{
-  printf("I am in your libc, stealing your cycles\n");
-}
-void collfs_call_magic( void (*magic_fun)(void));
-
+void collfs_init_pointers( 
+                          int (*p_MPI_Initialized) (int *flag),
+                          int (*p_MPI_Comm_rank) (MPI_Comm comm, int *rank),
+                          int (*p_MPI_Bcast) (void *buffer, int count, 
+                                              MPI_Datatype datatype, int root, MPI_Comm comm),
+                          int (*p_MPI_Allreduce) (void *sendbuf, void *recvbuf, int count,
+                                                  MPI_Datatype datatype, MPI_Op op,
+                                                  MPI_Comm comm),
+                          int (*p_MPI_Barrier) (MPI_Comm comm) 
+                           );
 
 int main(int argc, char *argv[])
 {
@@ -55,7 +59,11 @@ int main(int argc, char *argv[])
     MPI_Init(&argc,&argv);
   }
 
-  collfs_call_magic(&in_your_libc);
+  collfs_init_pointers( &MPI_Initialized,
+                        &MPI_Comm_rank,
+                        &MPI_Bcast,
+                        &MPI_Allreduce,
+                        &MPI_Barrier);
 
   if (!getcwd(path,sizeof path)) ERR("getcwd failed");
   strcat(path,"/libthefunc.so");

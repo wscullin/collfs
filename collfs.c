@@ -106,15 +106,30 @@ extern ssize_t __read(int fd,void *buf,size_t count);
 
 // MPI stubs - these function references will be equal to 0 
 // if the linker has not brought in MPI yet
-extern int MPI_Initialized(int *flag) __attribute__ ((weak));
-extern int MPI_Comm_rank (MPI_Comm comm, int *rank) __attribute__ ((weak));
-extern int MPI_Bcast (void *buffer, int count, MPI_Datatype datatype, int root,
-                      MPI_Comm comm)  __attribute__ ((weak));
-extern int MPI_Allreduce (void *sendbuf, void *recvbuf, int count,
-                          MPI_Datatype datatype, MPI_Op op,
-                          MPI_Comm comm ) __attribute__ ((weak));
-extern int MPI_Barrier (MPI_Comm comm) __attribute__ ((weak));
+int (*p_MPI_Initialized) (int *flag) = 0;
+int (*p_MPI_Comm_rank) (MPI_Comm comm, int *rank) = 0;
+int (*p_MPI_Bcast) (void *buffer, int count, MPI_Datatype datatype, int root,
+                   MPI_Comm comm) = 0;
+int (*p_MPI_Allreduce) (void *sendbuf, void *recvbuf, int count,
+                       MPI_Datatype datatype, MPI_Op op,
+                       MPI_Comm comm ) = 0;
+int (*p_MPI_Barrier) (MPI_Comm comm) = 0;
 
+void collfs_init_pointers( int (*_MPI_Initialized)(int *flag),
+                           int (*_MPI_Comm_rank) (MPI_Comm comm, int *rank),
+                           int (*_MPI_Bcast) (void *buffer, int count, 
+                                             MPI_Datatype datatype, int root,MPI_Comm comm),
+                           int (*_MPI_Allreduce) (void *sendbuf, void *recvbuf, int count,
+                                              MPI_Datatype datatype, MPI_Op op,
+                                                 MPI_Comm comm),
+                           int (*_MPI_Barrier) (MPI_Comm comm))
+{
+  p_MPI_Initialized = _MPI_Initialized;
+  p_MPI_Comm_rank = _MPI_Comm_rank;
+  p_MPI_Bcast = _MPI_Bcast;
+  p_MPI_Allreduce = _MPI_Allreduce;
+  p_MPI_Barrier = _MPI_Barrier;
+}
 
 /* Logically collective, changes the communicator on which future IO is collective */
 int __collfs_comm_push(MPI_Comm comm)
@@ -122,14 +137,14 @@ int __collfs_comm_push(MPI_Comm comm)
   struct CommLink *link;
   int initialized;
 
-  if (!MPI_Initialized) {
+  if (!p_MPI_Initialized) {
 #if DEBUG
     stderr_printf("Trying to push without any MPI symbols\n");
 #endif
     set_errno(ECOLLFS);
     return -1;
   }
-  MPI_Initialized(&initialized);
+  p_MPI_Initialized(&initialized);
   if (!initialized) {
 #if DEBUG
     stderr_printf("Cannot push comm when MPI is not initialized\n");
@@ -143,7 +158,7 @@ int __collfs_comm_push(MPI_Comm comm)
   link->next = CommStack;
   CommStack = link;
 #if DEBUG
-  MPI_Barrier(link->comm);
+  p_MPI_Barrier(link->comm);
 #endif
   return 0;
 }
@@ -154,7 +169,7 @@ int __collfs_comm_pop(void)
   if (!link) return -1;
   CommStack = link->next;
 #if DEBUG
-  MPI_Barrier(link->comm);
+  p_MPI_Barrier(link->comm);
 #endif
   free(link);
   return 0;
@@ -168,10 +183,10 @@ int __collfs_fxstat64(int vers, int fd, struct stat64 *buf)
   for (link=DLOpenFiles; link; link=link->next) {
     if (link->fd == fd) {
       int rank,xerr = 0;
-      err = MPI_Comm_rank(link->comm, &rank); if (err) return -1;
+      err = p_MPI_Comm_rank(link->comm, &rank); if (err) return -1;
       if (!rank) xerr = __fxstat64(vers, fd, buf);
 #if DEBUG
-      err = MPI_Bcast(&xerr, 1, MPI_INT, 0, link->comm);
+      err = p_MPI_Bcast(&xerr, 1, MPI_INT, 0, link->comm);
       if (err < 0) {
         set_errno(ECOLLFS);
         return -1;
@@ -179,7 +194,7 @@ int __collfs_fxstat64(int vers, int fd, struct stat64 *buf)
 #endif
       if (xerr < 0) return -1; /* Only rank 0 will have errno set correctly */
 
-      err = MPI_Bcast(buf, sizeof *buf, MPI_BYTE, 0, link->comm);
+      err = p_MPI_Bcast(buf, sizeof *buf, MPI_BYTE, 0, link->comm);
       if (err < 0) {
         set_errno(ECOLLFS);
         return -1;
@@ -194,10 +209,10 @@ int __collfs_xstat64(int vers, const char *file, struct stat64 *buf)
 {
   if (CommStack) {
     int err,rank,xerr;
-    err = MPI_Comm_rank(CommStack->comm, &rank); if (err) return -1;
+    err = p_MPI_Comm_rank(CommStack->comm, &rank); if (err) return -1;
     if (!rank) xerr = __xstat64(vers, file, buf);
 #if DEBUG
-    err = MPI_Bcast(&xerr, 1, MPI_INT, 0, CommStack->comm);
+    err = p_MPI_Bcast(&xerr, 1, MPI_INT, 0, CommStack->comm);
     if (err < 0) {
       set_errno(ECOLLFS);
       return -1;
@@ -205,7 +220,7 @@ int __collfs_xstat64(int vers, const char *file, struct stat64 *buf)
 #endif
     if (xerr < 0) return -1; /* Only rank 0 will have errno set correctly */
 
-    err = MPI_Bcast(buf, sizeof *buf, MPI_BYTE, 0, CommStack->comm);
+    err = p_MPI_Bcast(buf, sizeof *buf, MPI_BYTE, 0, CommStack->comm);
     if (err < 0) {
       set_errno(ECOLLFS);
       return -1;
@@ -223,7 +238,7 @@ void *__collfs_mmap(void *addr, size_t len, int prot, int flags,
       int err;
 #if DEBUG
       int rank;
-      err = MPI_Comm_rank(link->comm, &rank);
+      err = p_MPI_Comm_rank(link->comm, &rank);
       if (err) {
         set_errno(EPROTO);
         return MAP_FAILED;
@@ -274,7 +289,7 @@ int __collfs_munmap (__ptr_t addr, size_t len)
   if (CommStack) {
 #if DEBUG
     int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    p_MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     stderr_printf("[%x] munmap(@%x,%x)\n", rank, (int)(intptr_t)addr, (int)len);
 #endif
     struct MMapLink *mlink;
@@ -307,7 +322,7 @@ off_t __collfs_lseek(int fildes, off_t offset, int whence)
   for (link=DLOpenFiles; link; link=link->next) {
     if (link->fd == fildes) {
       int rank = 0;
-      MPI_Comm_rank(link->comm,&rank);
+      p_MPI_Comm_rank(link->comm,&rank);
 #if DEBUG
       stderr_printf("[%x] lseek(fd:%x,%x,%x)\n",rank,fildes,(int)offset,whence);
 #endif
@@ -352,14 +367,14 @@ int __collfs_open(const char *pathname, int flags,...)
     return __open(pathname, flags, mode);
   }
 
-  if (!MPI_Initialized) {
+  if (!p_MPI_Initialized) {
 #if DEBUG
     stderr_printf("Stack not empty, but no MPI symbols\n");
 #endif
     set_errno(ECOLLFS);
     return -1;
   }
-    err = MPI_Initialized(&initialized); if (err) return -1;
+    err = p_MPI_Initialized(&initialized); if (err) return -1;
   if (!initialized) {
 #if DEBUG
     stderr_printf("Stack not empty, but MPI is not initialized. Perhaps it was finalized early?\n");
@@ -368,7 +383,7 @@ int __collfs_open(const char *pathname, int flags,...)
     return -1;
   }
 
-  err = MPI_Comm_rank(CommStack->comm, &rank);
+  err = p_MPI_Comm_rank(CommStack->comm, &rank);
   if (err) {
     set_errno(ECOLLFS);
     return -1;
@@ -393,16 +408,16 @@ int __collfs_open(const char *pathname, int flags,...)
 #if DEBUG
     {
       int initialized = 0;
-      if (MPI_Initialized) MPI_Initialized(&initialized);
+      if (p_MPI_Initialized) p_MPI_Initialized(&initialized);
       if (!initialized) {
         stderr_printf("Attempt to perform collective open with no MPI symbols");
         set_errno(ECOLLFS);
         return -1;
       }
-      MPI_Barrier(CommStack->comm);
+      p_MPI_Barrier(CommStack->comm);
     }
 #endif
-    err = MPI_Bcast(&len, 1,MPI_INT, 0, CommStack->comm); if (err) return -1;
+    err = p_MPI_Bcast(&len, 1,MPI_INT, 0, CommStack->comm); if (err) return -1;
     if (len < 0) return -1;
     mem = NULL;
     if (!rank) mem = mmap(0, len, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -417,7 +432,7 @@ int __collfs_open(const char *pathname, int flags,...)
     if (fd >= 0)
       /* Make sure everyone found memory */
       gotmem = !!mem;
-    err = MPI_Allreduce(MPI_IN_PLACE, &gotmem, 1, MPI_INT, MPI_LAND, CommStack->comm);
+    err = p_MPI_Allreduce(MPI_IN_PLACE, &gotmem, 1, MPI_INT, MPI_LAND, CommStack->comm);
     if (!gotmem) {
       if (!rank) {
         if (mem) munmap(mem, len);
@@ -425,7 +440,7 @@ int __collfs_open(const char *pathname, int flags,...)
       return -1;
     }
 
-    err = MPI_Bcast(mem, len, MPI_BYTE, 0, CommStack->comm); if (err) return -1;
+    err = p_MPI_Bcast(mem, len, MPI_BYTE, 0, CommStack->comm); if (err) return -1;
 
     if (rank) fd = NextFD++;            /* There is no way to make a proper file descriptor, this requires patching read() */
 
@@ -460,11 +475,11 @@ int __collfs_close(int fd)
       int rank = 0, xerr = 0, initialized = 0;
 
 #if DEBUG
-      err = MPI_Comm_rank(MPI_COMM_WORLD,&rank); if (err) return -1;
+      err = p_MPI_Comm_rank(MPI_COMM_WORLD,&rank); if (err) return -1;
       stderr_printf("[%x] close(fd:%x)\n",rank,fd);
 #endif
       if (--link->refct > 0) return 0;
-      if (MPI_Initialized) {err = MPI_Initialized(&initialized); if (err) return -1;}
+      if (p_MPI_Initialized) {err = p_MPI_Initialized(&initialized); if (err) return -1;}
       if (!initialized) {
 #if DEBUG
         stderr_printf("Attempt to close open collective fd, but MPI is not initialized. Perhaps it was finalized early?\n");
@@ -472,7 +487,7 @@ int __collfs_close(int fd)
         set_errno(ECOLLFS);
         return -1;
       }
-      err = MPI_Comm_rank(CommStack ? CommStack->comm : MPI_COMM_WORLD, &rank); if (err) return -1;
+      err = p_MPI_Comm_rank(CommStack ? CommStack->comm : MPI_COMM_WORLD, &rank); if (err) return -1;
       if (!rank) {
         munmap(link->mem, link->len);
         xerr = __close(fd);
@@ -495,12 +510,12 @@ ssize_t __collfs_read(int fd, void *buf, size_t count)
 {
   struct FileLink *link;
 
-  if (!MPI_Initialized) return __read(fd, buf, count);
+  if (!p_MPI_Initialized) return __read(fd, buf, count);
 
   for (link=DLOpenFiles; link; link=link->next) { /* Could optimize to not always walk the list */
     int rank = 0, err, initialized;
-    err = MPI_Initialized(&initialized); if (err) return -1;
-    if (initialized) {err = MPI_Comm_rank(link->comm, &rank); if (err) return -1;}
+    err = p_MPI_Initialized(&initialized); if (err) return -1;
+    if (initialized) {err = p_MPI_Comm_rank(link->comm, &rank); if (err) return -1;}
     if (fd == link->fd) {
 #if DEBUG > 1
       stderr_printf("[%x] read(%x,%x,%x)\n", rank, fd, (unsigned)(uintptr_t)buf, (unsigned)count);
@@ -519,9 +534,3 @@ ssize_t __collfs_read(int fd, void *buf, size_t count)
 #endif
   return __read(fd, buf, count);
 }
-
-void collfs_call_magic( void (*magic_fun)(void))
-{
-  (*magic_fun)();
-}
- 
