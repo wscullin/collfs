@@ -49,6 +49,8 @@ void collfs_init_pointers(
                           int (*p_MPI_Barrier) (MPI_Comm comm) 
                            );
 
+int __collfs_comm_push(MPI_Comm comm);
+
 int main(int argc, char *argv[])
 {
   int err;
@@ -64,6 +66,8 @@ int main(int argc, char *argv[])
                         &MPI_Bcast,
                         &MPI_Allreduce,
                         &MPI_Barrier);
+
+  __collfs_comm_push(MPI_COMM_WORLD);
 
   if (!getcwd(path,sizeof path)) ERR("getcwd failed");
   strcat(path,"/libthefunc.so");
