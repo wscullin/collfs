@@ -40,6 +40,9 @@ cp $collfs_dir/glibc-2.4-bgp-patches/Makeconfig $glibc_src_dir
 cp $collfs_dir/collfs.h $glibc_src_dir/elf
 cp $collfs_dir/collfs.c $glibc_src_dir/elf/dl-collfs.c 
 cp $collfs_dir/glibc-2.4-bgp-patches/elf/* $glibc_src_dir/elf
+cp $collfs_dir/glibc-2.4-bgp-patches/abilist/* $glibc_src_dir/abilist
+cp $collfs_dir/glibc-2.4-bgp-patches/dlfcn/* $glibc_src_dir/dlfcn
+cp $collfs_dir/glibc-2.4-bgp-patches/include/* $glibc_src_dir/include
 
 # configure using default-shared gcc specs
 rm -rf $tmpdir/glibc-2.4-build
