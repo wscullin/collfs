@@ -106,14 +106,14 @@ extern ssize_t __read(int fd,void *buf,size_t count);
 
 // MPI stubs - these function references will be equal to 0 
 // if the linker has not brought in MPI yet
-int (*p_MPI_Initialized) (int *flag) = 0;
-int (*p_MPI_Comm_rank) (MPI_Comm comm, int *rank) = 0;
-int (*p_MPI_Bcast) (void *buffer, int count, MPI_Datatype datatype, int root,
+static int (*p_MPI_Initialized) (int *flag) = 0;
+static int (*p_MPI_Comm_rank) (MPI_Comm comm, int *rank) = 0;
+static int (*p_MPI_Bcast) (void *buffer, int count, MPI_Datatype datatype, int root,
                    MPI_Comm comm) = 0;
-int (*p_MPI_Allreduce) (void *sendbuf, void *recvbuf, int count,
+static int (*p_MPI_Allreduce) (void *sendbuf, void *recvbuf, int count,
                        MPI_Datatype datatype, MPI_Op op,
                        MPI_Comm comm ) = 0;
-int (*p_MPI_Barrier) (MPI_Comm comm) = 0;
+static int (*p_MPI_Barrier) (MPI_Comm comm) = 0;
 
 void collfs_init_pointers( int (*_MPI_Initialized)(int *flag),
                            int (*_MPI_Comm_rank) (MPI_Comm comm, int *rank),
@@ -153,12 +153,18 @@ int __collfs_comm_push(MPI_Comm comm)
     return -1;
   }
   link = malloc(sizeof *link);
-  if (!link) return -1;
+  if (!link) {
+#if DEBUG
+    stderr_printf("Unable to malloc link\n");
+#endif
+    return -1;
+  }
   link->comm = comm;
   link->next = CommStack;
   CommStack = link;
 #if DEBUG
   p_MPI_Barrier(link->comm);
+  stderr_printf("MPI Communicator: %x pushed to CommStack %x\n", (int) comm, (int) CommStack);
 #endif
   return 0;
 }

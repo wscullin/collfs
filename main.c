@@ -27,11 +27,11 @@ int run_tests(const char *soname, const char *path)
 
   func = dlsym(handle,"thefunc");
   if (!func) ERR("dlsym could not find symbol \"thefunc\" due to: %s", dlerror());
-  err = (*func)();CHK(err);
+  /* err = (*func)();CHK(err); */
 
   test_fxstat64 = dlsym(handle,"thetest_fxstat64");
   if (!func) ERR("dlsym could not find symbol \"thetest_fxstat64\" due to: %s", dlerror());
-  err = (*test_fxstat64)(path);CHK(err);
+  /* err = (*test_fxstat64)(path);CHK(err); */
 
   err = dlclose(handle);
   if (err) ERR("dlclose failed due to: %s", dlerror());
@@ -67,13 +67,13 @@ int main(int argc, char *argv[])
                         &MPI_Allreduce,
                         &MPI_Barrier);
 
-  __collfs_comm_push(MPI_COMM_WORLD);
+  if(!__collfs_comm_push(MPI_COMM_WORLD)) ERR("comm push failed");
 
   if (!getcwd(path,sizeof path)) ERR("getcwd failed");
   strcat(path,"/libthefunc.so");
   err = run_tests(path, path);CHK(err);
-  err = foo(path);CHK(err);
-  err = foo2("alphabet.txt");CHK(err);
+  //  err = foo(path);CHK(err);
+  //  err = foo2("alphabet.txt");CHK(err);
   if (MPI_Finalize) MPI_Finalize();
   return 0;
 }
