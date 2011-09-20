@@ -4,8 +4,10 @@ The following files appear to be involved in exposing a function from libc/libdl
 
 abilist/libdl.abilist
 dlfcn/Makefile
-dlfcn/dlcollfs.c  # new file containing the externally available symbols, calls hidden functions
-elf/collfs.c         # I need to expose the public functions in this file through dlcollfs.c
+dlfcn/dlcollfs_comm_push.c  # new file containing the externally available dlcollfs_comm_push
+dlfcn/dlcollfs_init_pointers.c  # new file containing the externally available dlcollfs_init_pointers
+elf/collfs.c         # no changes
+elf/dl-libc.c       # expose public collfs functions through dl_open_hook struct
 
 ***********************************************************************************************
 # Applying collfs patches to glibc-2.4

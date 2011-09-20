@@ -38,7 +38,7 @@ int run_tests(const char *soname, const char *path)
   return 0;
 }
 
-void collfs_init_pointers( 
+void dlcollfs_init_pointers( 
                           int (*p_MPI_Initialized) (int *flag),
                           int (*p_MPI_Comm_rank) (MPI_Comm comm, int *rank),
                           int (*p_MPI_Bcast) (void *buffer, int count, 
@@ -49,7 +49,7 @@ void collfs_init_pointers(
                           int (*p_MPI_Barrier) (MPI_Comm comm) 
                            );
 
-int __collfs_comm_push(MPI_Comm comm);
+int dlcollfs_comm_push(MPI_Comm comm);
 
 int main(int argc, char *argv[])
 {
@@ -61,13 +61,13 @@ int main(int argc, char *argv[])
     MPI_Init(&argc,&argv);
   }
 
-  collfs_init_pointers( &MPI_Initialized,
+  dlcollfs_init_pointers( &MPI_Initialized,
                         &MPI_Comm_rank,
                         &MPI_Bcast,
                         &MPI_Allreduce,
                         &MPI_Barrier);
 
-  if(!__collfs_comm_push(MPI_COMM_WORLD)) ERR("comm push failed");
+  if(!dlcollfs_comm_push(MPI_COMM_WORLD)) ERR("comm push failed");
 
   if (!getcwd(path,sizeof path)) ERR("getcwd failed");
   strcat(path,"/libthefunc.so");

@@ -115,7 +115,7 @@ static int (*p_MPI_Allreduce) (void *sendbuf, void *recvbuf, int count,
                        MPI_Comm comm ) = 0;
 static int (*p_MPI_Barrier) (MPI_Comm comm) = 0;
 
-void collfs_init_pointers( int (*_MPI_Initialized)(int *flag),
+void __collfs_init_pointers( int (*_MPI_Initialized)(int *flag),
                            int (*_MPI_Comm_rank) (MPI_Comm comm, int *rank),
                            int (*_MPI_Bcast) (void *buffer, int count, 
                                              MPI_Datatype datatype, int root,MPI_Comm comm),

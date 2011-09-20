@@ -20,14 +20,18 @@ subdir		:= dlfcn
 headers		:= bits/dlfcn.h dlfcn.h
 extra-libs	:= libdl
 libdl-routines	:= dlopen dlclose dlsym dlvsym dlerror dladdr dladdr1 dlinfo \
-		   dlmopen dlfcn
-routines	:= $(patsubst %,s%,$(filter-out dlfcn,$(libdl-routines)))
+		   dlmopen dlfcn dlcollfs_comm_push dlcollfs_init_pointers
+routines	:= $(patsubst %,s%,$(filter-out dlfcn,$(libdl-routines))) 
 elide-routines.os := $(routines)
 distribute	:= dlopenold.c glreflib1.c glreflib2.c failtestmod.c \
 		   defaultmod1.c defaultmod2.c errmsg1mod.c modatexit.c \
 		   modcxaatexit.c modstatic.c modstatic2.c \
 		   bug-dlsym1-lib1.c bug-dlsym1-lib2.c bug-atexit1-lib.c \
 		   bug-atexit2-lib.c
+
+CFLAGS-dl-collfs_comm_push.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
+
+CFLAGS-dl-collfs_init_pointers.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
 
 extra-libs-others := libdl
 
