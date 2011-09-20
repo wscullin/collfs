@@ -5,7 +5,7 @@ The following files appear to be involved in exposing a function from libc/libdl
 abilist/libdl.abilist
 dlfcn/Makefile
 dlfcn/dlcollfs.c  # new file containing the externally available symbols, calls hidden functions
-elf/collfs.c         # I need to move the public functions in this file to dlcollfs.c
+elf/collfs.c         # I need to expose the public functions in this file through dlcollfs.c
 
 ***********************************************************************************************
 # Applying collfs patches to glibc-2.4
