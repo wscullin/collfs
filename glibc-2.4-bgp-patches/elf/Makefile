@@ -100,6 +100,8 @@ CFLAGS-dl-lookup.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-dl-iterate-phdr.c = $(uses-callbacks)
 CFLAGS-dl-collfs.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
 
+CFLAGS-dl-libc.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
+
 include ../Makeconfig
 
 ifeq ($(unwind-find-fde),yes)

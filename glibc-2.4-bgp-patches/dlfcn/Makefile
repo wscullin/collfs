@@ -29,6 +29,11 @@ distribute	:= dlopenold.c glreflib1.c glreflib2.c failtestmod.c \
 		   bug-dlsym1-lib1.c bug-dlsym1-lib2.c bug-atexit1-lib.c \
 		   bug-atexit2-lib.c
 
+CFLAGS-dlerror.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
+
+
+CFLAGS-sdlerror.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
+
 CFLAGS-dl-collfs_comm_push.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
 
 CFLAGS-dl-collfs_init_pointers.c = -DCOLLFS_IN_LIBC -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/default/include -I/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/comm/sys/include -g3 -DDEBUG=1
