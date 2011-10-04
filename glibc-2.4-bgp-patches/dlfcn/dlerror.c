@@ -18,6 +18,7 @@
    02111-1307 USA.  */
 
 #include <dlfcn.h>
+#include <dlcollfs.h>
 #include <libintl.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -224,6 +225,9 @@ free_key_mem (void *mem)
 struct dlfcn_hook *_dlfcn_hook __attribute__((nocommon));
 libdl_hidden_data_def (_dlfcn_hook)
 
+struct dlcollfs_hook *_dlcollfs_hook __attribute__((nocommon));
+libdl_hidden_data_def (_dlcollfs_hook)
+
 # else
 
 static struct dlfcn_hook _dlfcn_hooks =
@@ -239,6 +243,13 @@ static struct dlfcn_hook _dlfcn_hooks =
     .dlmopen = __dlmopen
   };
 
+static struct dlcollfs_hook _dlcollfs_hooks = 
+  {
+    .dlcollfsinitialize = __dlcollfsinitialize,
+    .dlcollfsfinalize = __dlcollfsfinalize
+  };
+
+
 void
 __libc_register_dlfcn_hook (struct link_map *map)
 {
@@ -247,6 +258,16 @@ __libc_register_dlfcn_hook (struct link_map *map)
   hook = (struct dlfcn_hook **) __libc_dlsym_private (map, "_dlfcn_hook");
   if (hook != NULL)
     *hook = &_dlfcn_hooks;
+}
+
+void
+__libc_register_dlcollfs_hook (struct link_map *map)
+{
+  struct dlcollfs_hook **collfs_hook;
+
+  collfs_hook = (struct dlcollfs_hook **) __libc_dlsym_private (map, "_dlcollfs_hook");
+  if (collfs_hook != NULL)
+    *collfs_hook = &_dlcollfs_hooks;
 }
 # endif
 #endif

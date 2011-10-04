@@ -34,16 +34,18 @@ cd $tmpdir
 #	 $tmpdir/templinuxheaders-build/include/linux
 
 # patch makeconfig
-cp $collfs_dir/glibc-2.4-bgp-patches/Makeconfig $glibc_src_dir
+#cp $collfs_dir/glibc-2.4-bgp-patches/Makeconfig $glibc_src_dir
 
 # apply collfs patches
-cp $collfs_dir/collfs.h $glibc_src_dir/elf
-cp $collfs_dir/collfs.c $glibc_src_dir/elf/dl-collfs.c 
 cp $collfs_dir/glibc-2.4-bgp-patches/elf/* $glibc_src_dir/elf
+cp $collfs_dir/glibc-2.4-bgp-patches/abilist/* $glibc_src_dir/abilist
+cp $collfs_dir/glibc-2.4-bgp-patches/dlfcn/* $glibc_src_dir/dlfcn
+cp $collfs_dir/glibc-2.4-bgp-patches/include/* $glibc_src_dir/include
+cp $collfs_dir/glibc-2.4-bgp-patches/sysdeps/generic/* $glibc_src_dir/sysdeps/generic
 
 # configure using default-shared gcc specs
-rm -rf $tmpdir/glibc-2.4-build
-mkdir -p $tmpdir/glibc-2.4-build
+#rm -rf $tmpdir/glibc-2.4-build
+#mkdir -p $tmpdir/glibc-2.4-build
 cd $tmpdir/glibc-2.4-build &&  \
     PATH=/usr/gnu/bin:/usr/bin:/bin:/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/gnu-linux/bin/ LD_LIBRARY_PATH=    \
     CC="powerpc-bgp-linux-gcc -specs=/bgsys/drivers/V1R4M2_200_2010-100508P/ppc/gnu-linux/lib/gcc/powerpc-bgp-linux/4.1.2/specs.orig" \

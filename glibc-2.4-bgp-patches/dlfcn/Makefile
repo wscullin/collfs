@@ -20,8 +20,8 @@ subdir		:= dlfcn
 headers		:= bits/dlfcn.h dlfcn.h
 extra-libs	:= libdl
 libdl-routines	:= dlopen dlclose dlsym dlvsym dlerror dladdr dladdr1 dlinfo \
-		   dlmopen dlfcn
-routines	:= $(patsubst %,s%,$(filter-out dlfcn,$(libdl-routines)))
+		   dlmopen dlfcn dlcollfsinitialize dlcollfsfinalize
+routines	:= $(patsubst %,s%,$(filter-out dlfcn,$(libdl-routines))) 
 elide-routines.os := $(routines)
 distribute	:= dlopenold.c glreflib1.c glreflib2.c failtestmod.c \
 		   defaultmod1.c defaultmod2.c errmsg1mod.c modatexit.c \
