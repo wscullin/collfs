@@ -39,7 +39,7 @@ typedef int (*collfs_debug_vprintf_fp)(int level,const char *fmt,va_list ap);
 
 typedef int (*collfs_fxstat64_fp)(int vers, int fd, struct stat64 *buf);
 typedef int (*collfs_xstat64_fp)(int vers, const char *file, struct stat64 *buf);
-typedef int (*collfs_open_fp)(const char *pathname, int flags, mode_t mode);
+typedef int (*collfs_open_fp)(const char *pathname, int flags, ...);
 typedef int (*collfs_close_fp)(int fd);
 typedef ssize_t (*collfs_read_fp)(int fd, void *buf, size_t count);
 typedef off_t (*collfs_lseek_fp)(int fildes, off_t offset, int whence);
