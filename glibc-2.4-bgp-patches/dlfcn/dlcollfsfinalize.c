@@ -33,8 +33,8 @@ int
 __dlcollfsfinalize ()
 {
 # ifdef SHARED
-  if (__builtin_expect (_dlcollfs_hook != NULL, 0))
-    return _dlcollfs_hook->dlcollfsfinalize ();
+  if (__builtin_expect (_dlfcn_hook != NULL, 0))
+    return _dlfcn_hook->dlcollfsfinalize ();
 # endif
   struct dlcollfsfinalize_args args;
 

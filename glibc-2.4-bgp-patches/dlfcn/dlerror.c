@@ -225,9 +225,6 @@ free_key_mem (void *mem)
 struct dlfcn_hook *_dlfcn_hook __attribute__((nocommon));
 libdl_hidden_data_def (_dlfcn_hook)
 
-struct dlcollfs_hook *_dlcollfs_hook __attribute__((nocommon));
-libdl_hidden_data_def (_dlcollfs_hook)
-
 # else
 
 static struct dlfcn_hook _dlfcn_hooks =
@@ -240,15 +237,10 @@ static struct dlfcn_hook _dlfcn_hooks =
     .dladdr = __dladdr,
     .dladdr1 = __dladdr1,
     .dlinfo = __dlinfo,
-    .dlmopen = __dlmopen
-  };
-
-static struct dlcollfs_hook _dlcollfs_hooks = 
-  {
+    .dlmopen = __dlmopen,
     .dlcollfsinitialize = __dlcollfsinitialize,
     .dlcollfsfinalize = __dlcollfsfinalize
   };
-
 
 void
 __libc_register_dlfcn_hook (struct link_map *map)
@@ -260,14 +252,5 @@ __libc_register_dlfcn_hook (struct link_map *map)
     *hook = &_dlfcn_hooks;
 }
 
-void
-__libc_register_dlcollfs_hook (struct link_map *map)
-{
-  struct dlcollfs_hook **collfs_hook;
-
-  collfs_hook = (struct dlcollfs_hook **) __libc_dlsym_private (map, "_dlcollfs_hook");
-  if (collfs_hook != NULL)
-    *collfs_hook = &_dlcollfs_hooks;
-}
 # endif
 #endif

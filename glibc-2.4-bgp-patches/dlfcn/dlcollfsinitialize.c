@@ -43,8 +43,8 @@ int
 __dlcollfsinitialize (collfs_debug_vprintf_fp debug_printf, const struct libc_collfs_api *api, struct libc_collfs_api *unwrap)
 {
 # ifdef SHARED
-  if (__builtin_expect (_dlcollfs_hook != NULL, 0))
-    return _dlcollfs_hook->dlcollfsinitialize (debug_printf, api, unwrap);
+  if (__builtin_expect (_dlfcn_hook != NULL, 0))
+    return _dlfcn_hook->dlcollfsinitialize (debug_printf, api, unwrap);
 # endif
   struct dlcollfsinitialize_args args;
   args.debug_printf = debug_printf;

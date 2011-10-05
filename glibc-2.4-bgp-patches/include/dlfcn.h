@@ -1,5 +1,6 @@
 #ifndef _DLFCN_H
 #include <dlfcn/dlfcn.h>
+#include <dlfcn/dlcollfs.h>
 #include <link.h>		/* For ElfW.  */
 #include <stdbool.h>
 
@@ -33,9 +34,16 @@ extern char **__libc_argv attribute_hidden;
 extern void *__libc_dlopen_mode  (__const char *__name, int __mode);
 extern void *__libc_dlsym   (void *__map, __const char *__name);
 extern int   __libc_dlclose (void *__map);
+extern int __libc_dlcollfsinitialize (collfs_debug_vprintf_fp debug_printf, 
+                                      const struct libc_collfs_api *api, 
+                                      struct libc_collfs_api *unwrap);
+extern int __libc_dlcollfsfinalize (void);
 libc_hidden_proto (__libc_dlopen_mode)
 libc_hidden_proto (__libc_dlsym)
 libc_hidden_proto (__libc_dlclose)
+libc_hidden_proto (__libc_dlcollfsfinalize);
+libc_hidden_proto (__libc_dlcollfsinitialize);
+
 
 /* Locate shared object containing the given address.  */
 #ifdef ElfW
@@ -82,6 +90,14 @@ extern int _dl_catch_error (const char **objname, const char **errstring,
 extern int _dlerror_run (void (*operate) (void *), void *args)
      internal_function;
 
+
+extern int _dl_collfsinitialize (collfs_debug_vprintf_fp debug_printf, 
+                                 const struct libc_collfs_api *api, 
+                                 struct libc_collfs_api *unwrap) internal_function;
+extern int _dl_collfsfinalize (void) internal_function;
+
+
+
 #ifdef SHARED
 # define DL_CALLER_DECL /* Nothing */
 # define DL_CALLER RETURN_ADDRESS (0)
@@ -103,6 +119,10 @@ struct dlfcn_hook
 		  void **extra_info, int flags);
   int (*dlinfo) (void *handle, int request, void *arg, void *dl_caller);
   void *(*dlmopen) (Lmid_t nsid, const char *file, int mode, void *dl_caller);
+  int (*dlcollfsfinalize) (void);
+  int (*dlcollfsinitialize) (collfs_debug_vprintf_fp debug_printf, 
+                             const struct libc_collfs_api *api, 
+                             struct libc_collfs_api *unwrap);
   void *pad[4];
 };
 
@@ -117,6 +137,13 @@ extern int __dlclose (void *handle)
      attribute_hidden;
 extern void *__dlsym (void *handle, const char *name DL_CALLER_DECL)
      attribute_hidden;
+extern int __dlcollfsinitialize (collfs_debug_vprintf_fp debug_printf, 
+                                const struct libc_collfs_api *api, 
+                                struct libc_collfs_api *unwrap) 
+     attribute_hidden;
+extern int __dlcollfsfinalize (void) 
+     attribute_hidden;
+
 extern void *__dlvsym (void *handle, const char *name, const char *version
 		       DL_CALLER_DECL)
      attribute_hidden;

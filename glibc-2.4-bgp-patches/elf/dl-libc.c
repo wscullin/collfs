@@ -19,6 +19,7 @@
    02111-1307 USA.  */
 
 #include <dlfcn.h>
+#include <dlcollfs.h>
 #include <stdlib.h>
 #include <ldsodefs.h>
 
@@ -78,6 +79,23 @@ struct do_dlsym_args
   const ElfW(Sym) *ref;
 };
 
+struct do_dlcollfsinitialize_args
+{
+  /* The arguments to dlcollfsinitialize_doit.  */
+  collfs_debug_vprintf_fp debug_printf;
+  const struct libc_collfs_api *api;
+  struct libc_collfs_api *unwrap;
+  /* The return value of dlcollfsinitialize_doit.  */
+  int returnint;
+};
+
+struct do_dlcollfsfinalize_args
+{
+  /* The return value of dlcollfsfinalize_doit.  */
+  int returnint;
+};
+
+
 static void
 do_dlopen (void *ptr)
 {
@@ -103,6 +121,24 @@ do_dlclose (void *ptr)
   GLRO(dl_close) ((struct link_map *) ptr);
 }
 
+static void
+do_dlcollfsinitialize (void *ptr)
+{
+  struct do_dlcollfsinitialize_args *args = (struct do_dlcollfsinitialize_args *) ptr;
+
+  args->returnint = GLRO(dl_collfsinitialize) (args->debug_printf,
+                                               args->api,
+                                               args->unwrap);
+}
+ 
+static void
+do_dlcollfsfinalize (void *ptr)
+{
+  struct do_dlcollfsfinalize_args *args = (struct do_dlcollfsfinalize_args *) ptr;
+
+  args->returnint = GLRO(dl_collfsfinalize) ();
+}
+
 /* This code is to support __libc_dlopen from __libc_dlopen'ed shared
    libraries.  We need to ensure the statically linked __libc_dlopen
    etc. functions are used instead of the dynamically loaded.  */
@@ -111,6 +147,9 @@ struct dl_open_hook
   void *(*dlopen_mode) (const char *name, int mode);
   void *(*dlsym) (void *map, const char *name);
   int (*dlclose) (void *map);
+  /* Aron doesn't think this will be needed, but just in case... */
+  int (*dlcollfsinitialize) (collfs_debug_vprintf_fp debug_printf, const struct libc_collfs_api *api, struct libc_collfs_api *unwrap);
+  int (*dlcollfsfinalize) (void);
 };
 
 #ifdef SHARED
@@ -141,7 +180,9 @@ static struct dl_open_hook _dl_open_hook =
   {
     .dlopen_mode = __libc_dlopen_mode,
     .dlsym = __libc_dlsym,
-    .dlclose = __libc_dlclose
+    .dlclose = __libc_dlclose,
+    .dlcollfsinitialize = __libc_dlcollfsinitialize,
+    .dlcollfsfinalize = __libc_dlcollfsfinalize
   };
 #endif
 
@@ -219,6 +260,35 @@ __libc_dlclose (void *map)
   return dlerror_run (do_dlclose, map);
 }
 libc_hidden_def (__libc_dlclose)
+
+int 
+__libc_dlcollfsinitialize(collfs_debug_vprintf_fp vprintf_, const struct libc_collfs_api *api, struct libc_collfs_api *unwrap)
+{
+  struct do_dlcollfsinitialize_args args;
+  args.debug_printf = vprintf_;
+  args.api = api;
+  args.unwrap = unwrap;
+
+#ifdef SHARED
+  if (__builtin_expect (_dl_open_hook != NULL, 0))
+    return _dl_open_hook->dlcollfsinitialize (vprintf_, api, unwrap);
+#endif
+  return dlerror_run (do_dlcollfsinitialize, &args) ? -1 : args.returnint;
+}
+libc_hidden_def (__libc_dlcollfsinitialize)
+
+int 
+__libc_dlcollfsfinalize()
+{
+  struct do_dlcollfsfinalize_args args;
+
+#ifdef SHARED
+  if (__builtin_expect (_dl_open_hook != NULL, 0))
+    return _dl_open_hook->dlcollfsfinalize ();
+#endif
+  return dlerror_run (do_dlcollfsfinalize, &args) ? -1 : args.returnint;
+}
+libc_hidden_def (__libc_dlcollfsfinalize)
 
 
 libc_freeres_fn (free_mem)
