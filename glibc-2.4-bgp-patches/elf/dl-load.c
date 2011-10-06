@@ -163,13 +163,13 @@ static const size_t system_dirs_len[] =
 
 
 #ifndef IS_IN_rtld
-#define __open(pathname,flags) __collfs_open(pathname,flags)
-#define __close(fd) __collfs_close(fd)
-#define __lseek(fildes, offset, whence) __collfs_lseek(fildes, offset, whence)
-#define __fxstat64(vers, fd, buf) __collfs_fxstat64(vers, fd, buf)
-#define __libc_read(fd, buf, count) __collfs_read(fd, buf, count)
-#define __mmap(addr, len, prot, flags, fildes, off) __collfs_mmap(addr, len, prot, flags, fildes, off)
-#define __unmap(addr, len) __collfs_munmap(addr,len)
+#define ICEPT_OPEN(pathname,flags) __collfs_open(pathname,flags)
+#define ICEPT_CLOSE(fd) __collfs_close(fd)
+#define ICEPT_LSEEK(fildes, offset, whence) __collfs_lseek(fildes, offset, whence)
+#define ICEPT_FXSTAT64(vers, fd, buf) __collfs_fxstat64(vers, fd, buf)
+#define ICEPT_READ(fd, buf, count) __collfs_read(fd, buf, count)
+#define ICEPT_MMAP(addr, len, prot, flags, fildes, off) __collfs_mmap(addr, len, prot, flags, fildes, off)
+#define ICEPT_UNMAP(addr, len) __collfs_munmap(addr,len)
 
 extern int __collfs_fxstat64(int vers, int fd, struct stat64 *buf);
 extern int __collfs_open(const char *pathname,int flags,...);
@@ -179,6 +179,16 @@ extern void* __collfs_mmap(void *addr, size_t len, int prot, int flags,
 extern int __collfs_munmap (__ptr_t addr, size_t len);
 extern off_t __collfs_lseek(int fildes, off_t offset, int whence);
 extern int __collfs_read(int fd,void *buf,size_t count);
+
+#else 
+
+#define ICEPT_OPEN(pathname,flags) __open(pathname,flags) 
+#define ICEPT_CLOSE(fd) __close(fd)
+#define ICEPT_LSEEK(fildes, offset, whence) __lseek(fildes, offset, whence)
+#define ICEPT_FXSTAT64(vers, fd, buf) __fxstat64(vers, fd, buf)
+#define ICEPT_READ(fd, buf, count) __libc_read(fd, buf, count)
+#define ICEPT_MMAP(addr, len, prot, flags, fildes, off) __mmap(addr, len, prot, flags, fildes, off) 
+#define ICEPT_UNMAP(addr, len) __unmap(addr, len) 
 
 #endif
 
@@ -809,7 +819,7 @@ lose (int code, int fd, const char *name, char *realname, struct link_map *l,
 {
   /* The file might already be closed.  */
   if (fd != -1)
-    (void) __close (fd);
+    (void) ICEPT_CLOSE (fd);
   if (l != NULL)
     {
       /* Remove the stillborn object from the list and free it.  */
@@ -853,7 +863,7 @@ _dl_map_object_from_fd (const char *name, int fd, struct filebuf *fbp,
   bool make_consistent = false;
 
   /* Get file information.  */
-  if (__builtin_expect (__fxstat64 (_STAT_VER, fd, &st) < 0, 0))
+  if (__builtin_expect (ICEPT_FXSTAT64 (_STAT_VER, fd, &st) < 0, 0))
     {
       errstring = N_("cannot stat shared object");
     call_lose_errno:
@@ -880,7 +890,7 @@ _dl_map_object_from_fd (const char *name, int fd, struct filebuf *fbp,
       {
 	/* The object is already loaded.
 	   Just bump its reference count and return it.  */
-	__close (fd);
+	ICEPT_CLOSE (fd);
 
 	/* If the name is not in the list of names for this object add
 	   it.  */
@@ -909,7 +919,7 @@ _dl_map_object_from_fd (const char *name, int fd, struct filebuf *fbp,
 
       /* No need to bump the refcount of the real object, ld.so will
 	 never be unloaded.  */
-      __close (fd);
+      ICEPT_CLOSE (fd);
 
       return l;
     }
@@ -934,7 +944,7 @@ _dl_map_object_from_fd (const char *name, int fd, struct filebuf *fbp,
       _dl_zerofd = _dl_sysdep_open_zero_fill ();
       if (_dl_zerofd == -1)
 	{
-	  __close (fd);
+	  ICEPT_CLOSE (fd);
 	  _dl_signal_error (errno, NULL, NULL,
 			    N_("cannot open zero fill device"));
 	}
@@ -1004,8 +1014,8 @@ _dl_map_object_from_fd (const char *name, int fd, struct filebuf *fbp,
   else
     {
       phdr = alloca (maplength);
-      __lseek(fd, header->e_phoff, SEEK_SET);
-      if ((size_t) __libc_read(fd, (void *) phdr, maplength) != maplength)
+      ICEPT_LSEEK(fd, header->e_phoff, SEEK_SET);
+      if ((size_t) ICEPT_READ(fd, (void *) phdr, maplength) != maplength)
 	{
 	  errstring = N_("cannot read file data");
 	  goto call_lose_errno;
@@ -1214,7 +1224,7 @@ cannot allocate TLS data structures for initial thread");
 		   - MAP_BASE_ADDR (l));
 
 	/* Remember which part of the address space this object uses.  */
-	l->l_map_start = (ElfW(Addr)) __mmap((void *) mappref, maplength,
+	l->l_map_start = (ElfW(Addr)) ICEPT_MMAP((void *) mappref, maplength,
                                              c->prot,
                                              MAP_COPY|MAP_FILE,
                                              fd, c->mapoff);
@@ -1264,7 +1274,7 @@ cannot allocate TLS data structures for initial thread");
       {
 	if (c->mapend > c->mapstart
 	    /* Map the segment contents from the file.  */
-	    && (__mmap((void *) (l->l_addr + c->mapstart),
+	    && (ICEPT_MMAP((void *) (l->l_addr + c->mapstart),
                        c->mapend - c->mapstart, c->prot,
                        MAP_FIXED|MAP_COPY|MAP_FILE,
                        fd, c->mapoff)
@@ -1323,7 +1333,7 @@ cannot allocate TLS data structures for initial thread");
 	      {
 		/* Map the remaining zero pages in from the zero fill FD.  */
 		caddr_t mapat;
-		mapat = __mmap((caddr_t) zeropage, zeroend - zeropage,
+		mapat = ICEPT_MMAP((caddr_t) zeropage, zeroend - zeropage,
                                c->prot, MAP_ANON|MAP_PRIVATE|MAP_FIXED,
                                ANONFD, 0);
 		if (__builtin_expect (mapat == MAP_FAILED, 0))
@@ -1448,7 +1458,7 @@ cannot enable executable stack as shared object requires");
 #endif
 
   /* We are done mapping in the file.  We no longer need the descriptor.  */
-  if (__builtin_expect (__close (fd) != 0, 0))
+  if (__builtin_expect (ICEPT_CLOSE (fd) != 0, 0))
     {
       errstring = N_("cannot close file descriptor");
       goto call_lose_errno;
@@ -1647,7 +1657,7 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
 #endif
 
   /* Open the file.  We always open files read-only.  */
-  int fd = __open(name, O_RDONLY);
+  int fd = ICEPT_OPEN(name, O_RDONLY);
   if (fd != -1)
     {
       ElfW(Ehdr) *ehdr;
@@ -1659,7 +1669,7 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
       /* We successfully openened the file.  Now verify it is a file
 	 we can use.  */
       __set_errno (0);
-      fbp->len = __libc_read(fd, fbp->buf, sizeof (fbp->buf));
+      fbp->len = ICEPT_READ(fd, fbp->buf, sizeof (fbp->buf));
 
       /* This is where the ELF header is loaded.  */
       assert (sizeof (fbp->buf) > sizeof (ElfW(Ehdr)));
@@ -1751,8 +1761,8 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
       else
 	{
 	  phdr = alloca (maplength);
-	  __lseek(fd, ehdr->e_phoff, SEEK_SET);
-	  if ((size_t) __libc_read(fd, (void *) phdr, maplength) != maplength)
+	  ICEPT_LSEEK(fd, ehdr->e_phoff, SEEK_SET);
+	  if ((size_t) ICEPT_READ(fd, (void *) phdr, maplength) != maplength)
 	    {
 	    read_error:
 	      errval = errno;
@@ -1769,8 +1779,8 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
 	      abi_note = (void *) (fbp->buf + ph->p_offset);
 	    else
 	      {
-		__lseek(fd, ph->p_offset, SEEK_SET);
-		if (__libc_read(fd, (void *) abi_note_buf, 32) != 32)
+		ICEPT_LSEEK(fd, ph->p_offset, SEEK_SET);
+		if (ICEPT_READ(fd, (void *) abi_note_buf, 32) != 32)
 		  goto read_error;
 
 		abi_note = abi_note_buf;
@@ -1786,7 +1796,7 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
 		|| (GLRO(dl_osversion) && GLRO(dl_osversion) < osversion))
 	      {
 	      close_and_out:
-		__close (fd);
+		ICEPT_CLOSE (fd);
 		__set_errno (ENOENT);
 		fd = -1;
 	      }
@@ -1895,13 +1905,13 @@ open_path (const char *name, size_t namelen, int preloaded,
 		 directories and so exploit the bugs.  */
 	      struct stat64 st;
 
-	      if (__fxstat64 (_STAT_VER, fd, &st) != 0
+	      if (ICEPT_FXSTAT64 (_STAT_VER, fd, &st) != 0
 		  || (st.st_mode & S_ISUID) == 0)
 		{
 		  /* The shared object cannot be tested for being SUID
 		     or this bit is not set.  In this case we must not
 		     use this object.  */
-		  __close (fd);
+		  ICEPT_CLOSE (fd);
 		  fd = -1;
 		  /* We simply ignore the file, signal this by setting
 		     the error value which would have been set by `open'.  */
@@ -1922,7 +1932,7 @@ open_path (const char *name, size_t namelen, int preloaded,
 	    {
 	      /* No memory for the name, we certainly won't be able
 		 to load and link it.  */
-	      __close (fd);
+	      ICEPT_CLOSE (fd);
 	      return -1;
 	    }
 	}
@@ -2141,7 +2151,7 @@ _dl_map_object (struct link_map *loader, const char *name, int preloaded,
 		      realname = local_strdup (cached);
 		      if (realname == NULL)
 			{
-			  __close (fd);
+			  ICEPT_CLOSE (fd);
 			  fd = -1;
 			}
 		    }

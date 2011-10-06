@@ -61,19 +61,29 @@ int main(int argc, char *argv[])
   start_time = MPI_Wtime();
 
   /* err = run_tests(path, path);CHK(err); */
-  /* err = run_tests("/project/k47/prod/petsc/3.1.8/ppc450d-bgp_gnu_shared/lib/libpetsc.so", */
-  /*                 "/project/k47/prod/petsc/3.1.8/ppc450d-bgp_gnu_shared/lib/libpetsc.so"); CHK(err); */
-  /* int fd = __collfs_open("/project/k47/prod/petsc/3.1.8/ppc450d-bgp_gnu_shared/lib/libpetsc.so",O_RDONLY); */
-  /* err = __collfs_close(fd); CHK(err); */
+  err = run_tests("/project/k47/prod/petsc/3.1.8/ppc450d-bgp_gnu_shared/lib/libpetsc.so",
+                  "/project/k47/prod/petsc/3.1.8/ppc450d-bgp_gnu_shared/lib/libpetsc.so"); CHK(err);
+  
+  end_time = MPI_Wtime();
+
+  if (MPI_Comm_rank) { 
+    err = MPI_Comm_rank(MPI_COMM_WORLD,&rank);CHK(err); 
+    if (!rank) printf("petsc dlopen/close test time: %e\n", end_time-start_time);
+  }
+
+  start_time = MPI_Wtime();
+
   struct stat64 st;
-  err = __collfs_xstat64(_STAT_VER, "/project/k47/prod/petsc/3.1.8/ppc450d-bgp_gnu_shared/lib/libpetsc.so", &st);CHK(err);
+  int fd = __collfs_open("/project/k47/prod/petsc/3.1.8/ppc450d-bgp_gnu_shared/lib/libpetsc.so",O_RDONLY);
+  err = __collfs_fxstat64(_STAT_VER, fd, &st);
+  err = __collfs_close(fd); CHK(err); 
 
   MPI_Barrier(MPI_COMM_WORLD);
   end_time = MPI_Wtime();
 
   if (MPI_Comm_rank) { 
     err = MPI_Comm_rank(MPI_COMM_WORLD,&rank);CHK(err); 
-    if (!rank) printf("collfs_open run test time: %e\n", end_time-start_time);
+    if (!rank) printf("collfs_open/fxstat run test time: %e\n", end_time-start_time);
   }
 
   start_time = MPI_Wtime();
