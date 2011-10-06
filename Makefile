@@ -12,7 +12,7 @@ LIBDL = -ldl
 COLLFS_SRC_C = collfs.c
 COLLFS_SRC_O = $(COLLFS_SRC_C:.c=.o)
 
-all : libthefunc.so main
+all : libthefunc.so main speedtest_nocollfs speedtest_collfs
 
 libc-collfs.so : libc-collfs.o
 	${CC} -shared -g3 -o $@ $^
@@ -24,8 +24,14 @@ thefunc.o : thefunc.c
 	${CC} ${CFLAGS} -c -fPIC $^
 
 main : main.o libfoo.so libcollfs.so 
-#main : main.o libfoo.so libcollfs.so libc-collfs.so
 	${MPICC} -g3 -o $@ $^ ${LDFLAGS} 
+
+speedtest_nocollfs : speedtest_nocollfs.o 
+	${MPICC} -g3 -o $@ $^ ${LDFLAGS} 
+
+speedtest_collfs : speedtest_collfs.o libfoo.so libcollfs.so 
+	${MPICC} -g3 -o $@ $^ ${LDFLAGS} 
+
 .c.o :
 	${CC} ${CFLAGS} -fPIC -c $^
 

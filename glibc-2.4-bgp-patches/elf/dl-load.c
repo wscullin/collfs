@@ -1004,8 +1004,8 @@ _dl_map_object_from_fd (const char *name, int fd, struct filebuf *fbp,
   else
     {
       phdr = alloca (maplength);
-      __lseek (fd, header->e_phoff, SEEK_SET);
-      if ((size_t) __libc_read (fd, (void *) phdr, maplength) != maplength)
+      __lseek(fd, header->e_phoff, SEEK_SET);
+      if ((size_t) __libc_read(fd, (void *) phdr, maplength) != maplength)
 	{
 	  errstring = N_("cannot read file data");
 	  goto call_lose_errno;
@@ -1214,10 +1214,10 @@ cannot allocate TLS data structures for initial thread");
 		   - MAP_BASE_ADDR (l));
 
 	/* Remember which part of the address space this object uses.  */
-	l->l_map_start = (ElfW(Addr)) __mmap ((void *) mappref, maplength,
-					      c->prot,
-					      MAP_COPY|MAP_FILE,
-					      fd, c->mapoff);
+	l->l_map_start = (ElfW(Addr)) __mmap((void *) mappref, maplength,
+                                             c->prot,
+                                             MAP_COPY|MAP_FILE,
+                                             fd, c->mapoff);
 	if (__builtin_expect ((void *) l->l_map_start == MAP_FAILED, 0))
 	  {
 	  map_error:
@@ -1264,10 +1264,10 @@ cannot allocate TLS data structures for initial thread");
       {
 	if (c->mapend > c->mapstart
 	    /* Map the segment contents from the file.  */
-	    && (__mmap ((void *) (l->l_addr + c->mapstart),
-			c->mapend - c->mapstart, c->prot,
-			MAP_FIXED|MAP_COPY|MAP_FILE,
-			fd, c->mapoff)
+	    && (__mmap((void *) (l->l_addr + c->mapstart),
+                       c->mapend - c->mapstart, c->prot,
+                       MAP_FIXED|MAP_COPY|MAP_FILE,
+                       fd, c->mapoff)
 		== MAP_FAILED))
 	  goto map_error;
         _r_debug_info.raise_next_event = 1;
@@ -1323,9 +1323,9 @@ cannot allocate TLS data structures for initial thread");
 	      {
 		/* Map the remaining zero pages in from the zero fill FD.  */
 		caddr_t mapat;
-		mapat = __mmap ((caddr_t) zeropage, zeroend - zeropage,
-				c->prot, MAP_ANON|MAP_PRIVATE|MAP_FIXED,
-				ANONFD, 0);
+		mapat = __mmap((caddr_t) zeropage, zeroend - zeropage,
+                               c->prot, MAP_ANON|MAP_PRIVATE|MAP_FIXED,
+                               ANONFD, 0);
 		if (__builtin_expect (mapat == MAP_FAILED, 0))
 		  {
 		    errstring = N_("cannot map zero-fill pages");
@@ -1647,7 +1647,7 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
 #endif
 
   /* Open the file.  We always open files read-only.  */
-  int fd = __open (name, O_RDONLY);
+  int fd = __open(name, O_RDONLY);
   if (fd != -1)
     {
       ElfW(Ehdr) *ehdr;
@@ -1659,7 +1659,7 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
       /* We successfully openened the file.  Now verify it is a file
 	 we can use.  */
       __set_errno (0);
-      fbp->len = __libc_read (fd, fbp->buf, sizeof (fbp->buf));
+      fbp->len = __libc_read(fd, fbp->buf, sizeof (fbp->buf));
 
       /* This is where the ELF header is loaded.  */
       assert (sizeof (fbp->buf) > sizeof (ElfW(Ehdr)));
@@ -1751,8 +1751,8 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
       else
 	{
 	  phdr = alloca (maplength);
-	  __lseek (fd, ehdr->e_phoff, SEEK_SET);
-	  if ((size_t) __libc_read (fd, (void *) phdr, maplength) != maplength)
+	  __lseek(fd, ehdr->e_phoff, SEEK_SET);
+	  if ((size_t) __libc_read(fd, (void *) phdr, maplength) != maplength)
 	    {
 	    read_error:
 	      errval = errno;
@@ -1769,8 +1769,8 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
 	      abi_note = (void *) (fbp->buf + ph->p_offset);
 	    else
 	      {
-		__lseek (fd, ph->p_offset, SEEK_SET);
-		if (__libc_read (fd, (void *) abi_note_buf, 32) != 32)
+		__lseek(fd, ph->p_offset, SEEK_SET);
+		if (__libc_read(fd, (void *) abi_note_buf, 32) != 32)
 		  goto read_error;
 
 		abi_note = abi_note_buf;
