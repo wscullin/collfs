@@ -365,7 +365,7 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
             return ((collfs_mmap_fp) unwrap.mmap)(addr, len, prot, flags, link->fd, off);
           } else {
             mem = ((collfs_mmap_fp) unwrap.mmap)(addr, len, prot | PROT_WRITE, flags | MAP_ANONYMOUS, link->fd, off);
-            memcpy(addr, link->mem+off, len);
+            memmove(addr, link->mem+off, len);
             return mem;
           }
         }
@@ -389,7 +389,7 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
             ((collfs_munmap_fp) unwrap.munmap)(link->mem,link->len);
           } else {
             mem = ((collfs_mmap_fp) unwrap.mmap)(addr, len, prot | PROT_WRITE, flags | MAP_ANONYMOUS, link->fd, off);
-            memcpy(mem, link->mem+off, link->len);
+            memmove(mem, link->mem+off, link->len);
             ((collfs_munmap_fp) unwrap.munmap)(link->mem,link->len);
           }
           gotmem = !!mem;
