@@ -95,6 +95,7 @@ struct FileLink {
   void *mem;
   size_t len;
   size_t offset;
+  size_t totallen;
   struct FileLink *next;
 };
 static struct FileLink *DLOpenFiles;
@@ -222,7 +223,7 @@ static int collfs_open(const char *pathname, int flags, mode_t mode)
     } else {
       /* Don't use shm_open() here because the shared memory segment is fixed at boot time. */
       fd = NextFD++;
-      mem = malloc(len);
+      mem = ((collfs_mmap_fp) unwrap.mmap)(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, fd, 0);
     }
 
     if (fd >= 0)
@@ -248,6 +249,7 @@ static int collfs_open(const char *pathname, int flags, mode_t mode)
     strcpy(link->fname, pathname);
     link->mem = mem;
     link->len = len;
+    link->totallen = len;
     link->offset = 0;
 
     /* Add new node to the list */
@@ -280,7 +282,7 @@ static int collfs_close(int fd)
         ((collfs_munmap_fp) unwrap.munmap)(link->mem, link->len);
         xerr = ((collfs_close_fp) unwrap.close)(fd);
       } else {
-        free(link->mem);
+        ((collfs_munmap_fp) unwrap.munmap)(link->mem, link->len);
       }
       *linkp = link->next;
       free(link);
@@ -325,19 +327,7 @@ static off_t collfs_lseek(int fildes, off_t offset, int whence)
       int rank = 0;
       MPI_Comm_rank(link->comm,&rank);
       debug_printf(2, "%s(%d, %lld, %d) collective", __func__, fildes, (long long)offset, whence);
-      if (!rank) return ((collfs_lseek_fp) unwrap.lseek)(fildes, offset, whence); /* Rank 0 has a normal fd */
-      switch (whence) {
-      case SEEK_SET:
-        link->offset = offset;
-        break;
-      case SEEK_CUR:
-        link->offset += offset;
-        break;
-      case SEEK_END:
-        link->offset = link->len + offset;
-        break;
-      }
-      return link->offset;
+      return ((collfs_lseek_fp) unwrap.lseek)(fildes, offset, whence); 
     }
   }
   debug_printf(2, "%s(%d, %lld, %d) independent", __func__, fildes, (long long)offset, whence);
@@ -353,8 +343,11 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
 {
   struct FileLink *link;
   int err, gotmem, rank, pagesize;
+  size_t totallen;
   void *mem;
   pagesize = getpagesize();
+
+  debug_printf(2, "%s(%p, %zu, %d, %d, %d, %lld) requested", __func__, addr, len, prot, flags, fildes, (long long)off);
 
   CHECK_INIT(MAP_FAILED);
   for (link=DLOpenFiles; link; link=link->next) {
@@ -366,19 +359,19 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
         return MAP_FAILED;
       }
       if (flags & MAP_FIXED) {
-        if (addr >= (void*)((char*) link->mem) && addr+len <= (void*)((char*)link->mem+link->len)) {
+        if (addr >= (void*)((char*) link->mem) && addr+len <= (void*)((char*)link->mem+link->totallen)) {
           err = MPI_Comm_rank(CommStack->comm, &rank);
           if (!rank) {
             return ((collfs_mmap_fp) unwrap.mmap)(addr, len, prot, flags, link->fd, off);
           } else {
-            debug_printf(2, "moving %d bytes from %p to %p", len, (void*)(char*)link->mem+off, addr);
-            memmove(addr,(void*)(char*)link->mem+off,len);
-            return addr;
+            mem = ((collfs_mmap_fp) unwrap.mmap)(addr, len, prot | PROT_WRITE, flags | MAP_ANONYMOUS, link->fd, off);
+            memcpy(addr, link->mem+off, len);
+            return mem;
           }
         }
         else {
-          debug_printf(2, "%p requested of length %d, but link->mem = %p and link->mem+link->len = %p", 
-                       addr, len, link->mem,  (void*)((char*)link->mem+link->len));
+          debug_printf(2, "%p requested of length %d, but link->mem = %p and link->mem+link->totallen = %p", 
+                       addr, len, link->mem,  (void*)((char*)link->mem+link->totallen));
           set_error(EACCES, "addr < (void*)( (char*) link->mem + off) || addr < (void*) (char*) link->mem+link->len");
         }
       }
@@ -388,14 +381,16 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
       }
       if (len > link->len) {
         if (link->refct==1) { // no clients have mmaped this file, safe to remap/realloc
-          debug_printf(2, "reallocating to size %d on offset %d", len, off);
+          totallen = (len + (pagesize-1)) & ~(pagesize-1);
+          debug_printf(2, "reallocating to size %zu (%zu requested) on offset %lld", totallen, len, (long long)off);
           err = MPI_Comm_rank(CommStack->comm, &rank);
           if (!rank) {
-            ((collfs_munmap_fp) unwrap.munmap)(link->mem,link->len);
             mem = ((collfs_mmap_fp) unwrap.mmap)(addr, len, prot, flags, link->fd, off);
+            ((collfs_munmap_fp) unwrap.munmap)(link->mem,link->len);
           } else {
-            len += len%pagesize;
-            mem = realloc(link->mem, len);
+            mem = ((collfs_mmap_fp) unwrap.mmap)(addr, len, prot | PROT_WRITE, flags | MAP_ANONYMOUS, link->fd, off);
+            memcpy(mem, link->mem+off, link->len);
+            ((collfs_munmap_fp) unwrap.munmap)(link->mem,link->len);
           }
           gotmem = !!mem;
           err = MPI_Allreduce(MPI_IN_PLACE, &gotmem, 1, MPI_INT, MPI_LAND, CommStack->comm);
@@ -403,8 +398,10 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
             set_error(ECOLLFS, "Could not find memory to reallocate");
             return MAP_FAILED;
           }
+          debug_printf(2, "new memory region spans %p to %p", mem, mem+totallen);
           link->mem = mem;
           link->len = len;
+          link->totallen = totallen;
           link->offset = off;
         }
         else {
@@ -415,6 +412,7 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
         set_error(ENXIO, "off < 0");
         return MAP_FAILED;
       }
+      debug_printf(2, "%s(%p, %zu, %d, %d, %d, %lld) building mlink", __func__, addr, len, prot, flags, fildes, (long long)off);
       mlink = malloc(sizeof *mlink);
       mlink->addr = (char*)link->mem + off;
       mlink->len = len;
@@ -422,6 +420,7 @@ static void *collfs_mmap(void *addr, size_t len, int prot, int flags, int fildes
       mlink->next = MMapRegions;
       MMapRegions = mlink;
       link->refct++;
+      debug_printf(2, "%s(%p, %zu, %d, %d, %d, %lld) completed", __func__, addr, len, prot, flags, fildes, (long long)off);
       return mlink->addr;
     }
   }
