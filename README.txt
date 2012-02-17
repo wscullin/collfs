@@ -1,17 +1,17 @@
 ***********************************************************************************************
 # What is collfs?
 
-collfs is a user library and set of patches to glibc that enables file system calls to be handled collectively over an
+collfs is a user library and set of patches to glibc that enables file system calls to be handled collectively over an 
 MPI Communicator.  collfs was written with the specific goal of providing scalable dynamic loading on supercomputers
 with faster interconnect than i/o performance, but is a general-purpose tool that can be used either directly as a
 library or implicitly by wrapping file system calls with collective versions.
 
 The collfs patches are currently quite minimal.  They insert an externally visible struct object into the run-time
-dynamic linker containing void function hooks for collective MPI versions of the standard file system API.  These function pointers
-are then used (when non-NULL) to replace file system function calls within the standard dynamic loading routines in glibc.  Additionally,
-we provide a small static C library via LD_PRELOAD that initializes MPI (this is pre-main, so it passes NULL to the Init
-routines) and activates the function hooks to point to our collective versions of the standard file system API,
-shadowing the original file system functions (but utilizing them by default).  
+dynamic linker containing void function hooks for collective MPI versions of the standard file system API.  These
+function pointers are then used (when non-NULL) to replace file system function calls within the standard dynamic
+loading routines in glibc.  Additionally, we provide a small static C library via LD_PRELOAD that initializes MPI (this
+is pre-main, so it passes NULL to the Init routines) and activates the function hooks to point to our collective
+versions of the standard file system API, shadowing the original file system functions (but utilizing them by default).
 
 ***********************************************************************************************
 # Installing collfs on a Fedora Core 5 system
@@ -23,7 +23,7 @@ This assumes you have an FC5 installation with the standard development RPMs ins
 glibc-2.4 from the SRPM, you will probably need to install the missing RPMs from the DVD or a web repository.
 
 Tips for setting up a non-root installation environment for SRPMs can be found here:
-http://www.owlriver.com/tips/non-root//
+http://www.owlriver.com/tips/non-root/
 
 mkdir -p ~/sandbox/glibc
 cd ~/sandbox/glibc

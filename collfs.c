@@ -255,7 +255,9 @@ static int collfs_open(const char *pathname, int flags, mode_t mode)
     /* Add new node to the list */
     link->next = DLOpenFiles;
     DLOpenFiles = link;
-
+    debug_printf(2, "%s(\"%s\") mapped with length: %d", __func__, pathname, len);
+    /* oddly, the mmap appears to set the offset to EOF on BG/P, we reset the offset pointer deliberately here */
+    ((collfs_lseek_fp) unwrap.lseek)(fd, 0, SEEK_SET);
     return fd;
   }
   /* more than read access needed, fall back to independent access */
@@ -305,11 +307,16 @@ static ssize_t collfs_read(int fd, void *buf, size_t count)
     if (initialized) {err = MPI_Comm_rank(link->comm, &rank); if (err) return -1;}
     if (fd == link->fd) {
       debug_printf(2, "%s(%d, %p, %zu) collective", __func__, fd, buf, count);
-      if (!rank) return ((collfs_read_fp) unwrap.read)(fd, buf, count);
+      if (!rank) {
+        count = ((collfs_read_fp) unwrap.read)(fd, buf, count);
+        debug_printf(2, "%s(%d, %p) collective - %zu bytes read", __func__, fd, buf, count);
+        return count;
+      }
       else {
         if ((link->len - link->offset) < count) count = link->len - link->offset;
         memcpy(buf, link->mem+link->offset, count);
         link->offset += count;
+        debug_printf(2, "%s(%d, %p) collective - %zu bytes read", __func__, fd, buf, count);
         return count;
       }
     }
