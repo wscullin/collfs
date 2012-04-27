@@ -1,2 +1,0 @@
-#define UNWINDBUFSIZE 560
-#define UWJMPBUF 0
