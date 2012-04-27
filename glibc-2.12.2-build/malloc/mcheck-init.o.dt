@@ -1,0 +1,71 @@
+/home/wscullin/collfs/glibc-2.12.2-build/malloc/mcheck-init.o: \
+ mcheck-init.c ../include/libc-symbols.h \
+ /home/wscullin/collfs/glibc-2.12.2-build/config.h \
+ ../sysdeps/generic/symbol-hacks.h ../include/malloc.h ../malloc/malloc.h \
+ ../include/features.h ../include/sys/cdefs.h ../misc/sys/cdefs.h \
+ ../sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h \
+ ../include/gnu/stubs.h \
+ /bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stddef.h \
+ ../include/stdio.h ../libio/stdio.h ../bits/types.h ../bits/typesizes.h \
+ ../include/libio.h ../libio/libio.h ../sysdeps/gnu/_G_config.h \
+ ../include/wchar.h ../wcsmbs/wchar.h ../include/gconv.h ../iconv/gconv.h \
+ /bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stdarg.h \
+ /home/wscullin/collfs/glibc-2.12.2-build/bits/stdio_lim.h \
+ ../sysdeps/unix/sysv/linux/bits/sys_errlist.h ../libio/bits/stdio.h \
+ ../include/mcheck.h ../malloc/mcheck.h
+
+../include/libc-symbols.h:
+
+/home/wscullin/collfs/glibc-2.12.2-build/config.h:
+
+../sysdeps/generic/symbol-hacks.h:
+
+../include/malloc.h:
+
+../malloc/malloc.h:
+
+../include/features.h:
+
+../include/sys/cdefs.h:
+
+../misc/sys/cdefs.h:
+
+../sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h:
+
+../include/gnu/stubs.h:
+
+/bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stddef.h:
+
+../include/stdio.h:
+
+../libio/stdio.h:
+
+../bits/types.h:
+
+../bits/typesizes.h:
+
+../include/libio.h:
+
+../libio/libio.h:
+
+../sysdeps/gnu/_G_config.h:
+
+../include/wchar.h:
+
+../wcsmbs/wchar.h:
+
+../include/gconv.h:
+
+../iconv/gconv.h:
+
+/bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stdarg.h:
+
+/home/wscullin/collfs/glibc-2.12.2-build/bits/stdio_lim.h:
+
+../sysdeps/unix/sysv/linux/bits/sys_errlist.h:
+
+../libio/bits/stdio.h:
+
+../include/mcheck.h:
+
+../malloc/mcheck.h:

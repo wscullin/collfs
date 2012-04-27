@@ -1,0 +1,41 @@
+/home/wscullin/collfs/glibc-2.12.2-build/iconvdata/ksc5601.os: ksc5601.c \
+ ../include/libc-symbols.h \
+ /home/wscullin/collfs/glibc-2.12.2-build/config.h \
+ ../sysdeps/generic/symbol-hacks.h ../sysdeps/generic/stdint.h \
+ ../include/features.h ../include/sys/cdefs.h ../misc/sys/cdefs.h \
+ ../sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h \
+ ../include/gnu/stubs.h ../bits/wchar.h ksc5601.h ../include/gconv.h \
+ ../iconv/gconv.h ../include/wchar.h ../wcsmbs/wchar.h \
+ /bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stddef.h
+
+../include/libc-symbols.h:
+
+/home/wscullin/collfs/glibc-2.12.2-build/config.h:
+
+../sysdeps/generic/symbol-hacks.h:
+
+../sysdeps/generic/stdint.h:
+
+../include/features.h:
+
+../include/sys/cdefs.h:
+
+../misc/sys/cdefs.h:
+
+../sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h:
+
+../include/gnu/stubs.h:
+
+../bits/wchar.h:
+
+ksc5601.h:
+
+../include/gconv.h:
+
+../iconv/gconv.h:
+
+../include/wchar.h:
+
+../wcsmbs/wchar.h:
+
+/bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stddef.h:

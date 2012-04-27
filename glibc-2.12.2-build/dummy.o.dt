@@ -1,0 +1,11 @@
+/home/wscullin/collfs/glibc-2.12.2-build/dummy.o: \
+ /home/wscullin/collfs/glibc-2.12.2-build/dummy.c \
+ ../include/libc-symbols.h \
+ /home/wscullin/collfs/glibc-2.12.2-build/config.h \
+ ../sysdeps/generic/symbol-hacks.h
+
+../include/libc-symbols.h:
+
+/home/wscullin/collfs/glibc-2.12.2-build/config.h:
+
+../sysdeps/generic/symbol-hacks.h:

@@ -1,0 +1,131 @@
+/home/wscullin/collfs/glibc-2.12.2-build/math/s_cprojl.o: \
+ ../sysdeps/ieee754/ldbl-128ibm/s_cprojl.c ../include/libc-symbols.h \
+ /home/wscullin/collfs/glibc-2.12.2-build/config.h \
+ ../sysdeps/generic/symbol-hacks.h ../include/complex.h ../math/complex.h \
+ ../include/features.h ../include/sys/cdefs.h ../misc/sys/cdefs.h \
+ ../sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h \
+ ../include/gnu/stubs.h ../sysdeps/powerpc/bits/mathdef.h \
+ ../include/bits/cmathcalls.h ../math/bits/cmathcalls.h ../include/math.h \
+ ../math/math.h ../sysdeps/ieee754/bits/huge_val.h \
+ ../sysdeps/ieee754/bits/huge_valf.h ../bits/huge_vall.h \
+ ../sysdeps/ieee754/bits/inf.h ../sysdeps/ieee754/bits/nan.h \
+ ../include/bits/mathcalls.h ../math/bits/mathcalls.h \
+ ../sysdeps/powerpc/fpu/bits/mathinline.h \
+ ../sysdeps/ieee754/ldbl-opt/math_ldbl_opt.h \
+ ../sysdeps/unix/sysv/linux/powerpc/nldbl-abi.h ../include/shlib-compat.h \
+ /home/wscullin/collfs/glibc-2.12.2-build/abi-versions.h \
+ ../math/math_private.h ../include/endian.h ../string/endian.h \
+ ../sysdeps/powerpc/bits/endian.h ../bits/byteswap.h \
+ ../sysdeps/generic/stdint.h ../bits/wchar.h ../include/sys/types.h \
+ ../posix/sys/types.h ../bits/types.h ../bits/typesizes.h \
+ ../include/time.h ../time/time.h \
+ /bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stddef.h \
+ ../include/sys/select.h ../misc/sys/select.h ../bits/select.h \
+ ../sysdeps/unix/sysv/linux/bits/sigset.h ../bits/time.h \
+ ../sysdeps/unix/sysv/linux/sys/sysmacros.h \
+ ../nptl/sysdeps/unix/sysv/linux/powerpc/bits/pthreadtypes.h \
+ ../sysdeps/ieee754/ldbl-128ibm/math_ldbl.h \
+ ../sysdeps/ieee754/ldbl-128/math_ldbl.h \
+ ../sysdeps/ieee754/ldbl-128ibm/ieee754.h
+
+../include/libc-symbols.h:
+
+/home/wscullin/collfs/glibc-2.12.2-build/config.h:
+
+../sysdeps/generic/symbol-hacks.h:
+
+../include/complex.h:
+
+../math/complex.h:
+
+../include/features.h:
+
+../include/sys/cdefs.h:
+
+../misc/sys/cdefs.h:
+
+../sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h:
+
+../include/gnu/stubs.h:
+
+../sysdeps/powerpc/bits/mathdef.h:
+
+../include/bits/cmathcalls.h:
+
+../math/bits/cmathcalls.h:
+
+../include/math.h:
+
+../math/math.h:
+
+../sysdeps/ieee754/bits/huge_val.h:
+
+../sysdeps/ieee754/bits/huge_valf.h:
+
+../bits/huge_vall.h:
+
+../sysdeps/ieee754/bits/inf.h:
+
+../sysdeps/ieee754/bits/nan.h:
+
+../include/bits/mathcalls.h:
+
+../math/bits/mathcalls.h:
+
+../sysdeps/powerpc/fpu/bits/mathinline.h:
+
+../sysdeps/ieee754/ldbl-opt/math_ldbl_opt.h:
+
+../sysdeps/unix/sysv/linux/powerpc/nldbl-abi.h:
+
+../include/shlib-compat.h:
+
+/home/wscullin/collfs/glibc-2.12.2-build/abi-versions.h:
+
+../math/math_private.h:
+
+../include/endian.h:
+
+../string/endian.h:
+
+../sysdeps/powerpc/bits/endian.h:
+
+../bits/byteswap.h:
+
+../sysdeps/generic/stdint.h:
+
+../bits/wchar.h:
+
+../include/sys/types.h:
+
+../posix/sys/types.h:
+
+../bits/types.h:
+
+../bits/typesizes.h:
+
+../include/time.h:
+
+../time/time.h:
+
+/bgsys/drivers/toolchain/V1R1M0-/gnu-linux/lib/gcc/powerpc64-bgq-linux/4.4.6/include/stddef.h:
+
+../include/sys/select.h:
+
+../misc/sys/select.h:
+
+../bits/select.h:
+
+../sysdeps/unix/sysv/linux/bits/sigset.h:
+
+../bits/time.h:
+
+../sysdeps/unix/sysv/linux/sys/sysmacros.h:
+
+../nptl/sysdeps/unix/sysv/linux/powerpc/bits/pthreadtypes.h:
+
+../sysdeps/ieee754/ldbl-128ibm/math_ldbl.h:
+
+../sysdeps/ieee754/ldbl-128/math_ldbl.h:
+
+../sysdeps/ieee754/ldbl-128ibm/ieee754.h:

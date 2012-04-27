@@ -1,0 +1,10 @@
+/home/wscullin/collfs/glibc-2.12.2-build/math/t_exp.os: \
+ ../sysdeps/ieee754/dbl-64/t_exp.c ../include/libc-symbols.h \
+ /home/wscullin/collfs/glibc-2.12.2-build/config.h \
+ ../sysdeps/generic/symbol-hacks.h
+
+../include/libc-symbols.h:
+
+/home/wscullin/collfs/glibc-2.12.2-build/config.h:
+
+../sysdeps/generic/symbol-hacks.h:
