@@ -6,6 +6,11 @@ COLLFS_SRC_O = $(COLLFS_SRC_C:.c=.o)
 all : main-mpi 
 
 # main-nompi and minimal_main are currently unverified
+libinterpose.so: interpose.c
+	${CC} -fPIC -Wall -Wl,--version-script -Wl,VERSION.txt -ldl -o $@ -shared $^ 
+
+interpose_python: interpose_python.c
+	${CC} -I/home/aron/opt/include/python2.7 -o interpose_python interpose_python.c -L/home/aron/opt/lib -lpython2.7 -lm -lpthread -ldl -lutil
 
 # Depends on MPI, must be called from an executable using patched ld.so because _dl_collfs_api is referenced.
 libcollfs.so : collfs.o
